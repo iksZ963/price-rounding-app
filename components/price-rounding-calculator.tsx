@@ -102,13 +102,9 @@ function calculateExactPreTaxPrice(currentPreTax: number, taxRate: number): { pr
 
   if (direction !== "up") return null
 
-  // Search downward from current price to find a pre-tax that lands exactly on a nickel
-  let candidatePreTax = Math.floor(currentPreTax * 100) / 100
-
-  // Try up to 50 cents lower to find an exact match
-  for (let i = 0; i < 50; i++) {
-    candidatePreTax = (Math.floor(currentPreTax * 100) - i) / 100
-    if (candidatePreTax <= 0) break
+  // Search upward from current price to find a pre-tax that lands exactly on a nickel
+  for (let i = 1; i <= 50; i++) {
+    const candidatePreTax = (Math.ceil(currentPreTax * 100) + i) / 100
 
     const candidateTotal = candidatePreTax * (1 + taxRate / 100)
     const { direction: candidateDirection } = roundToNickel(candidateTotal)
