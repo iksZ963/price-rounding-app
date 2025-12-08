@@ -72,11 +72,9 @@ function roundToNickel(amount: number): { rounded: number; direction: "up" | "do
     roundedCents = cents
     direction = "none"
   } else if (lastDigit === 1 || lastDigit === 2 || lastDigit === 6 || lastDigit === 7) {
-    // Round down
     roundedCents = cents - lastDigit + (lastDigit > 5 ? 5 : 0)
     direction = "down"
   } else {
-    // lastDigit is 3, 4, 8, or 9 - Round up
     roundedCents = cents - lastDigit + (lastDigit > 5 ? 10 : 5)
     direction = "up"
   }
@@ -117,7 +115,6 @@ export function PriceRoundingCalculator() {
 
   return (
     <div className="space-y-6">
-      {/* Input Section */}
       <Card className="border-2 border-foreground bg-card">
         <CardContent className="p-6 space-y-6">
           <div className="space-y-2">
@@ -145,7 +142,7 @@ export function PriceRoundingCalculator() {
                 State
               </Label>
               <Select value={selectedState} onValueChange={setSelectedState}>
-                <SelectTrigger id="state" className="h-12 border-2 border-foreground bg-background">
+                <SelectTrigger id="state" className="h-12 border-2 border-foreground bg-background w-full">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
@@ -187,7 +184,6 @@ export function PriceRoundingCalculator() {
         </CardContent>
       </Card>
 
-      {/* Results Section */}
       {hasValidPrice && (
         <Card className="border-2 border-foreground bg-card">
           <CardContent className="p-6">
@@ -208,7 +204,6 @@ export function PriceRoundingCalculator() {
               </div>
             </div>
 
-            {/* Rounded Result */}
             <div className="p-6 bg-primary/10 border-2 border-primary rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold uppercase tracking-wide text-primary">Cash Amount</span>
@@ -250,7 +245,6 @@ export function PriceRoundingCalculator() {
         </Card>
       )}
 
-      {/* Rounding Rules Reference */}
       <Card className="border-2 border-foreground/30 bg-card">
         <CardContent className="p-6">
           <h3 className="text-sm font-semibold uppercase tracking-wide mb-4">Swedish Rounding Rules</h3>
