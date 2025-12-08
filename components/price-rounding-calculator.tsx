@@ -96,6 +96,32 @@ function calculateNoLossPreTaxPrice(currentPreTax: number, taxRate: number): num
   return Math.ceil(requiredPreTax * 100) / 100
 }
 
+function calculateExactPreTaxPrice(currentPreTax: number, taxRate: number): { preTax: number; total: number } | null {
+  const total = currentPreTax * (1 + taxRate / 100)
+  const { direction } = roundToNickel(total)
+
+  if (direction !== "up") return null
+
+  // Search downward from current price to find a pre-tax that lands exactly on a nickel
+  let candidatePreTax = Math.floor(currentPreTax * 100) / 100
+
+  // Try up to 50 cents lower to find an exact match
+  for (let i = 0; i < 50; i++) {
+    candidatePreTax = (Math.floor(currentPreTax * 100) - i) / 100
+    if (candidatePreTax <= 0) break
+
+    const candidateTotal = candidatePreTax * (1 + taxRate / 100)
+    const { direction: candidateDirection } = roundToNickel(candidateTotal)
+
+    if (candidateDirection === "none") {
+      // Found an exact match
+      return { preTax: candidatePreTax, total: candidateTotal }
+    }
+  }
+
+  return null
+}
+
 export function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
   const [selectedState, setSelectedState] = useState("Florida")
@@ -119,6 +145,10 @@ export function PriceRoundingCalculator() {
     const noLossTotal = noLossPreTax ? noLossPreTax * (1 + taxRate / 100) : null
     const noLossRounded = noLossTotal ? roundToNickel(noLossTotal).rounded : null
 
+    const exactResult = direction === "up" ? calculateExactPreTaxPrice(priceNum, taxRate) : null
+    const exactPreTax = exactResult?.preTax ?? null
+    const exactRounded = exactResult ? roundToNickel(exactResult.total).rounded : null
+
     return {
       subtotal: priceNum,
       taxAmount,
@@ -128,6 +158,8 @@ export function PriceRoundingCalculator() {
       difference,
       noLossPreTax,
       noLossRounded,
+      exactPreTax,
+      exactRounded,
     }
   }, [price, taxRate])
 
@@ -278,6 +310,28 @@ export function PriceRoundingCalculator() {
                       to get{" "}
                       <span className="font-mono font-semibold text-foreground">
                         ${calculations.noLossRounded.toFixed(2)}
+                      </span>{" "}
+                      after tax (no rounding)
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {calculations.direction === "up" && calculations.exactPreTax && calculations.exactRounded && (
+              <div className="p-3 bg-emerald-500/10 border border-emerald-500/50 rounded-lg">
+                <div className="flex items-start gap-2">
+                  <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                  <div className="text-xs">
+                    <p className="font-semibold text-emerald-700 dark:text-emerald-500">Exact pricing tip</p>
+                    <p className="text-muted-foreground mt-0.5">
+                      Set pre-tax to{" "}
+                      <span className="font-mono font-semibold text-foreground">
+                        ${calculations.exactPreTax.toFixed(2)}
+                      </span>{" "}
+                      to get exactly{" "}
+                      <span className="font-mono font-semibold text-foreground">
+                        ${calculations.exactRounded.toFixed(2)}
                       </span>{" "}
                       after tax (no rounding)
                     </p>
