@@ -4,7 +4,7 @@ import { useState, useMemo } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { ArrowDown, ArrowUp, Minus, Info, AlertTriangle } from "lucide-react"
+import { ArrowDown, ArrowUp, Minus, Info, Store, Users } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const US_STATE_TAX_RATES = [
@@ -25,7 +25,7 @@ const US_STATE_TAX_RATES = [
   { state: "Iowa", rate: 6.0 },
   { state: "Kansas", rate: 6.5 },
   { state: "Kentucky", rate: 6.0 },
-  { state: "Louisiana", rate: 4.45 },
+  { state: "Louisiana", rate: 5.0 },
   { state: "Maine", rate: 5.5 },
   { state: "Maryland", rate: 6.0 },
   { state: "Massachusetts", rate: 6.25 },
@@ -51,14 +51,13 @@ const US_STATE_TAX_RATES = [
   { state: "South Dakota", rate: 4.2 },
   { state: "Tennessee", rate: 7.0 },
   { state: "Texas", rate: 6.25 },
-  { state: "Utah", rate: 6.1 },
+  { state: "Utah", rate: 4.85 },
   { state: "Vermont", rate: 6.0 },
-  { state: "Virginia", rate: 5.3 },
+  { state: "Virginia", rate: 4.3 },
   { state: "Washington", rate: 6.5 },
   { state: "West Virginia", rate: 6.0 },
   { state: "Wisconsin", rate: 5.0 },
   { state: "Wyoming", rate: 4.0 },
-  { state: "Custom", rate: 0.0 },
 ]
 
 function roundToNickel(amount: number): { rounded: number; direction: "up" | "down" | "none" } {
@@ -118,17 +117,70 @@ function calculateExactPreTaxPrice(currentPreTax: number, taxRate: number): { pr
   return null
 }
 
+function findPreTaxForExactNickel(targetNickel: number, taxRate: number): number | null {
+  // Calculate approximate pre-tax
+  const approxPreTax = targetNickel / (1 + taxRate / 100)
+
+  // Search around this value to find exact match
+  for (let offset = -10; offset <= 10; offset++) {
+    const candidatePreTax = Math.round(approxPreTax * 100 + offset) / 100
+    if (candidatePreTax <= 0) continue
+
+    const candidateTotal = candidatePreTax * (1 + taxRate / 100)
+    const { rounded, direction } = roundToNickel(candidateTotal)
+
+    if (direction === "none" && Math.abs(rounded - targetNickel) < 0.001) {
+      return candidatePreTax
+    }
+  }
+  return null
+}
+
+function calculateSuggestions(preTax: number, taxRate: number) {
+  const total = preTax * (1 + taxRate / 100)
+  const { rounded, direction } = roundToNickel(total)
+
+  // Find next nickel (ceiling)
+  const nextNickel = Math.ceil(total * 20) / 20
+  // Find previous nickel (floor)
+  const prevNickel = Math.floor(total * 20) / 20
+
+  const sellerPreTax = findPreTaxForExactNickel(nextNickel, taxRate)
+  const customerPreTax = findPreTaxForExactNickel(prevNickel, taxRate)
+
+  return {
+    seller: sellerPreTax ? { preTax: sellerPreTax, total: nextNickel } : null,
+    customer: customerPreTax ? { preTax: customerPreTax, total: prevNickel } : null,
+  }
+}
+
 export function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
   const [selectedState, setSelectedState] = useState("Florida")
   const [customTaxRate, setCustomTaxRate] = useState("")
+  const [isEditingTaxRate, setIsEditingTaxRate] = useState(false)
+
+  const stateTaxRate = useMemo(() => {
+    return US_STATE_TAX_RATES.find((s) => s.state === selectedState)?.rate || 0
+  }, [selectedState])
 
   const taxRate = useMemo(() => {
-    if (selectedState === "Custom") {
+    if (isEditingTaxRate && customTaxRate !== "") {
       return Number.parseFloat(customTaxRate) || 0
     }
-    return US_STATE_TAX_RATES.find((s) => s.state === selectedState)?.rate || 0
-  }, [selectedState, customTaxRate])
+    return stateTaxRate
+  }, [isEditingTaxRate, customTaxRate, stateTaxRate])
+
+  const handleStateChange = (state: string) => {
+    setSelectedState(state)
+    setIsEditingTaxRate(false)
+    setCustomTaxRate("")
+  }
+
+  const handleTaxRateChange = (value: string) => {
+    setCustomTaxRate(value)
+    setIsEditingTaxRate(true)
+  }
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0
@@ -137,13 +189,7 @@ export function PriceRoundingCalculator() {
     const { rounded, direction } = roundToNickel(total)
     const difference = rounded - total
 
-    const noLossPreTax = direction === "down" ? calculateNoLossPreTaxPrice(priceNum, taxRate) : null
-    const noLossTotal = noLossPreTax ? noLossPreTax * (1 + taxRate / 100) : null
-    const noLossRounded = noLossTotal ? roundToNickel(noLossTotal).rounded : null
-
-    const exactResult = direction === "up" ? calculateExactPreTaxPrice(priceNum, taxRate) : null
-    const exactPreTax = exactResult?.preTax ?? null
-    const exactRounded = exactResult ? roundToNickel(exactResult.total).rounded : null
+    const suggestions = priceNum > 0 ? calculateSuggestions(priceNum, taxRate) : { seller: null, customer: null }
 
     return {
       subtotal: priceNum,
@@ -152,10 +198,8 @@ export function PriceRoundingCalculator() {
       rounded,
       direction,
       difference,
-      noLossPreTax,
-      noLossRounded,
-      exactPreTax,
-      exactRounded,
+      sellerSuggestion: suggestions.seller,
+      customerSuggestion: suggestions.customer,
     }
   }, [price, taxRate])
 
@@ -171,14 +215,14 @@ export function PriceRoundingCalculator() {
               <Label htmlFor="state" className="text-xs font-semibold uppercase tracking-wide">
                 State
               </Label>
-              <Select value={selectedState} onValueChange={setSelectedState}>
+              <Select value={selectedState} onValueChange={handleStateChange}>
                 <SelectTrigger id="state" className="h-9 text-sm border-2 border-foreground bg-background w-full mt-1">
                   <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
                   {US_STATE_TAX_RATES.map((s) => (
                     <SelectItem key={s.state} value={s.state}>
-                      {s.state} {s.state !== "Custom" && `(${s.rate}%)`}
+                      {s.state} ({s.rate}%)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -189,26 +233,20 @@ export function PriceRoundingCalculator() {
               <Label htmlFor="tax-rate" className="text-xs font-semibold uppercase tracking-wide">
                 Tax Rate
               </Label>
-              {selectedState === "Custom" ? (
-                <div className="relative mt-1">
-                  <Input
-                    id="tax-rate"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    max="20"
-                    placeholder="0.00"
-                    value={customTaxRate}
-                    onChange={(e) => setCustomTaxRate(e.target.value)}
-                    className="h-9 text-sm pr-6 border-2 border-foreground bg-background font-mono"
-                  />
-                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
-                </div>
-              ) : (
-                <div className="h-9 px-3 flex items-center border-2 border-foreground bg-muted rounded-md font-mono text-sm mt-1">
-                  {taxRate}%
-                </div>
-              )}
+              <div className="relative mt-1">
+                <Input
+                  id="tax-rate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="20"
+                  placeholder={stateTaxRate.toString()}
+                  value={isEditingTaxRate ? customTaxRate : stateTaxRate.toString()}
+                  onChange={(e) => handleTaxRateChange(e.target.value)}
+                  className="h-9 text-sm pr-6 border-2 border-foreground bg-background font-mono"
+                />
+                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">%</span>
+              </div>
             </div>
           </div>
 
@@ -292,56 +330,51 @@ export function PriceRoundingCalculator() {
               <div className="text-4xl font-bold text-primary font-mono">${calculations.rounded.toFixed(2)}</div>
             </div>
 
-            {calculations.direction === "down" && calculations.noLossPreTax && calculations.noLossRounded && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/50 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <p className="font-semibold text-amber-700 dark:text-amber-500">Avoid loss</p>
-                    <p className="text-muted-foreground mt-0.5">
+            {calculations.direction !== "none" && (
+              <div className="grid grid-cols-2 gap-2">
+                {/* seller Centric - Next Nickel */}
+                {calculations.sellerSuggestion && (
+                  <div className="p-3 bg-emerald-500/10 border border-emerald-500/50 rounded-lg">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Store className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-500">Seller</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
                       Set pre-tax to{" "}
-                      <span className="font-mono font-semibold text-foreground">
-                        ${calculations.noLossPreTax.toFixed(2)}
+                      <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-400">
+                        ${calculations.sellerSuggestion.preTax.toFixed(2)}
                       </span>{" "}
-                      to get{" "}
-                      <span className="font-mono font-semibold text-foreground">
-                        ${calculations.noLossRounded.toFixed(2)}
-                      </span>{" "}
-                      after tax (no rounding)
+                      for exactly{" "}
+                      <span className="font-mono font-semibold text-emerald-700 dark:text-emerald-400">
+                        ${calculations.sellerSuggestion.total.toFixed(2)}
+                      </span>
                     </p>
                   </div>
-                </div>
-              </div>
-            )}
+                )}
 
-            {calculations.direction === "up" && calculations.exactPreTax && calculations.exactRounded && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/50 rounded-lg">
-                <div className="flex items-start gap-2">
-                  <Info className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                  <div className="text-xs">
-                    <p className="font-semibold text-emerald-700 dark:text-emerald-500">Exact pricing tip</p>
-                    <p className="text-muted-foreground mt-0.5">
+                {/* Customer Centric - Previous Nickel */}
+                {calculations.customerSuggestion && (
+                  <div className="p-3 bg-blue-500/10 border border-blue-500/50 rounded-lg">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Users className="w-3.5 h-3.5 text-blue-600" />
+                      <span className="text-xs font-semibold text-blue-700 dark:text-blue-500">Customer</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
                       Set pre-tax to{" "}
-                      <span className="font-mono font-semibold text-foreground">
-                        ${calculations.exactPreTax.toFixed(2)}
+                      <span className="font-mono font-semibold text-blue-700 dark:text-blue-400">
+                        ${calculations.customerSuggestion.preTax.toFixed(2)}
                       </span>{" "}
-                      to get exactly{" "}
-                      <span className="font-mono font-semibold text-foreground">
-                        ${calculations.exactRounded.toFixed(2)}
-                      </span>{" "}
-                      after tax (no rounding)
+                      for exactly{" "}
+                      <span className="font-mono font-semibold text-blue-700 dark:text-blue-400">
+                        ${calculations.customerSuggestion.total.toFixed(2)}
+                      </span>
                     </p>
                   </div>
-                </div>
+                )}
               </div>
             )}
+            {/* End of suggestion boxes */}
           </>
-        )}
-
-        {!hasValidPrice && (
-          <div className="p-4 border-2 border-dashed border-muted-foreground/30 rounded-lg text-center text-muted-foreground text-sm">
-            Enter a price to see the rounded cash amount
-          </div>
         )}
       </div>
     </TooltipProvider>
