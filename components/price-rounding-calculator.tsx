@@ -121,18 +121,21 @@ function findPreTaxForExactNickel(targetNickel: number, taxRate: number): number
   // Calculate approximate pre-tax
   const approxPreTax = targetNickel / (1 + taxRate / 100)
 
-  // Search around this value to find exact match
-  for (let offset = -10; offset <= 10; offset++) {
+  // Search with expanded range (50 cents in each direction)
+  for (let offset = -50; offset <= 50; offset++) {
     const candidatePreTax = Math.round(approxPreTax * 100 + offset) / 100
     if (candidatePreTax <= 0) continue
 
     const candidateTotal = candidatePreTax * (1 + taxRate / 100)
     const { rounded, direction } = roundToNickel(candidateTotal)
 
+    // Check if this pre-tax lands exactly on the target nickel
     if (direction === "none" && Math.abs(rounded - targetNickel) < 0.001) {
       return candidatePreTax
     }
   }
+
+  console.log("[v0] Could not find exact pre-tax for target nickel:", targetNickel, "with tax rate:", taxRate)
   return null
 }
 
@@ -140,17 +143,32 @@ function calculateSuggestions(preTax: number, taxRate: number) {
   const total = preTax * (1 + taxRate / 100)
   const { rounded, direction } = roundToNickel(total)
 
-  // Find next nickel (ceiling)
-  const nextNickel = Math.ceil(total * 20) / 20
-  // Find previous nickel (floor)
-  const prevNickel = Math.floor(total * 20) / 20
+  // If already exact, no suggestions needed
+  if (direction === "none") {
+    return { seller: null, customer: null }
+  }
 
-  const sellerPreTax = findPreTaxForExactNickel(nextNickel, taxRate)
-  const customerPreTax = findPreTaxForExactNickel(prevNickel, taxRate)
+  let sellerTarget: number
+  let customerTarget: number
+
+  if (direction === "down") {
+    // Rounded DOWN: customer already has best price (the rounded amount)
+    // Seller needs the next nickel up
+    customerTarget = rounded
+    sellerTarget = rounded + 0.05
+  } else {
+    // Rounded UP: seller already has best price (the rounded amount)
+    // Customer needs the previous nickel down
+    sellerTarget = rounded
+    customerTarget = rounded - 0.05
+  }
+
+  const sellerPreTax = findPreTaxForExactNickel(sellerTarget, taxRate)
+  const customerPreTax = findPreTaxForExactNickel(customerTarget, taxRate)
 
   return {
-    seller: sellerPreTax ? { preTax: sellerPreTax, total: nextNickel } : null,
-    customer: customerPreTax ? { preTax: customerPreTax, total: prevNickel } : null,
+    seller: sellerPreTax ? { preTax: sellerPreTax, total: sellerTarget } : null,
+    customer: customerPreTax ? { preTax: customerPreTax, total: customerTarget } : null,
   }
 }
 
