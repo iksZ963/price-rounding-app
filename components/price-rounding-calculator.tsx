@@ -157,7 +157,7 @@ export default function PriceRoundingCalculator() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex flex-col px-4 sm:px-6 pt-3 sm:pt-4 md:pt-6 pb-3 sm:pb-4 md:pb-6">
+        <div className="flex-1 flex flex-col px-4 sm:px-6 pt-3 sm:pt-4 md:pt-6 pb-3 sm:pb-4 md:pb-6 overflow-y-auto">
           {/* Tax Rate Input */}
           <div className="mb-2 sm:mb-3 md:mb-4">
             <label className="text-[10px] sm:text-xs font-bold tracking-wide text-zinc-500 dark:text-zinc-400 uppercase mb-1 sm:mb-1.5 block">
