@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Info, Store, Users } from "lucide-react"
+import { HelpCircle, Store, Users, AlertCircle } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 function roundToNickel(amount: number): { rounded: number; direction: "up" | "down" | "none" } {
@@ -33,17 +32,15 @@ function findReachableNickel(
   direction: "up" | "down",
 ): { preTax: number; total: number; skipped: boolean } | null {
   const step = direction === "up" ? 0.05 : -0.05
-  const maxAttempts = 20 // Try up to 20 nickels away
+  const maxAttempts = 20
 
   for (let i = 0; i < maxAttempts; i++) {
     const targetNickel = startNickel + step * i
 
     if (targetNickel <= 0) return null
 
-    // Try to find pre-tax for this nickel
     const approxPreTax = targetNickel / (1 + taxRate / 100)
 
-    // Search with expanded range (100 cents in each direction)
     for (let offset = -100; offset <= 100; offset++) {
       const candidatePreTax = Math.round(approxPreTax * 100 + offset) / 100
       if (candidatePreTax <= 0) continue
@@ -51,7 +48,6 @@ function findReachableNickel(
       const candidateTotal = candidatePreTax * (1 + taxRate / 100)
       const { rounded, direction: roundDirection } = roundToNickel(candidateTotal)
 
-      // Check if this pre-tax lands exactly on the target nickel
       if (roundDirection === "none" && Math.abs(rounded - targetNickel) < 0.001) {
         return { preTax: candidatePreTax, total: targetNickel, skipped: i > 0 }
       }
@@ -65,7 +61,6 @@ function calculateSuggestions(preTax: number, taxRate: number) {
   const total = preTax * (1 + taxRate / 100)
   const { rounded, direction } = roundToNickel(total)
 
-  // If already exact, no suggestions needed
   if (direction === "none") {
     return { seller: null, customer: null }
   }
@@ -74,13 +69,9 @@ function calculateSuggestions(preTax: number, taxRate: number) {
   let customerStartNickel: number
 
   if (direction === "down") {
-    // Rounded DOWN: customer already has best price (the rounded amount)
-    // Seller needs the next nickel up
     customerStartNickel = rounded
     sellerStartNickel = rounded + 0.05
   } else {
-    // Rounded UP: seller already has best price (the rounded amount)
-    // Customer needs the previous nickel down
     sellerStartNickel = rounded
     customerStartNickel = rounded - 0.05
   }
@@ -94,9 +85,9 @@ function calculateSuggestions(preTax: number, taxRate: number) {
   }
 }
 
-export function PriceRoundingCalculator() {
+export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
-  const [taxRate, setTaxRate] = useState("7")
+  const [taxRate, setTaxRate] = useState("")
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0
@@ -120,165 +111,243 @@ export function PriceRoundingCalculator() {
     }
   }, [price, taxRate])
 
-  const hasValidPrice = Number.parseFloat(price) > 0
-
   return (
     <TooltipProvider>
-      <div className="flex flex-col gap-6 max-w-2xl mx-auto">
-        {/* Input Section - Larger */}
-        <div className="p-6 border-2 border-foreground bg-card rounded-xl space-y-5">
+      <div className="relative flex h-full w-full max-w-[480px] mx-auto flex-col bg-white dark:bg-zinc-900 overflow-hidden shadow-2xl sm:my-4 sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+        {/* Header */}
+        <div className="flex bg-white dark:bg-zinc-900 p-4 z-10 border-zinc-100 dark:border-zinc-800 pt-4 pb-2 items-center justify-center border-b opacity-100">
+          <h2 className="text-zinc-900 dark:text-white text-lg font-bold leading-tight tracking-tight text-center">
+            Penny Rounding Calculator
+          </h2>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex flex-col px-4 pt-4 pb-6 overflow-y-auto">
           {/* Tax Rate Input */}
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Label htmlFor="tax-rate" className="text-sm font-bold uppercase tracking-wide">
-                Tax Rate
-              </Label>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="text-muted-foreground hover:text-foreground transition-colors">
-                    <Info className="w-4 h-4" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[240px]">
-                  <p className="font-semibold mb-2">Swedish Rounding Rules</p>
-                  <p className="text-xs mb-1">
-                    <span className="text-destructive font-semibold">Round Down:</span> ends in 1, 2, 6, 7
-                  </p>
-                  <p className="text-xs">
-                    <span className="text-success font-semibold">Round Up:</span> ends in 3, 4, 8, 9
-                  </p>
-                  <p className="text-xs mt-2 text-muted-foreground">Ends in 0 or 5 stay exact</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
+          <div className="mb-4">
+            <label className="text-xs font-bold tracking-wide text-zinc-500 dark:text-zinc-400 uppercase mb-2 block">
+              Tax Rate
+            </label>
             <div className="relative">
               <Input
-                id="tax-rate"
                 type="number"
                 step="0.01"
                 min="0"
                 max="20"
-                placeholder="7"
+                placeholder="0"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                className="h-16 text-2xl pr-12 border-2 border-foreground bg-background font-mono"
+                className="h-14 text-xl pr-12 bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 rounded-xl font-semibold focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 shadow-sm"
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-bold text-muted-foreground">
-                %
-              </span>
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xl font-semibold text-zinc-400">%</span>
             </div>
           </div>
 
-          {/* Price Input */}
-          <div>
-            <Label htmlFor="price" className="text-sm font-bold uppercase tracking-wide mb-2 block">
-              Pre-Tax Price
-            </Label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-3xl font-bold text-foreground">$</span>
-              <Input
-                id="price"
-                type="number"
-                step="0.01"
-                min="0"
-                placeholder="0.00"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="pl-12 h-20 text-3xl font-mono border-2 border-foreground bg-background"
-              />
+          {/* Pre-Tax Price - Large Display Style */}
+          <style jsx>{`
+            input[type="number"]::-webkit-outer-spin-button,
+            input[type="number"]::-webkit-inner-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+            input[type="number"] {
+              -moz-appearance: textfield;
+            }
+          `}</style>
+
+          <div className="flex flex-col items-center justify-center py-8 mb-6">
+            <label className="text-xs font-bold tracking-widest text-zinc-500 dark:text-zinc-400 uppercase mb-4">
+              Pre-Tax Amount
+            </label>
+            <div className="relative w-full">
+              <div className="flex items-baseline justify-center gap-2">
+                <span className="text-5xl font-semibold text-zinc-400 dark:text-zinc-500 self-start mt-5">$</span>
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0.00"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="text-6xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Breakdown - Always Show */}
-        {hasValidPrice && (
-          <>
-            <div className="px-6 py-3 bg-muted/50 rounded-lg border border-border">
-              <div className="flex items-center justify-between gap-4 text-sm">
-                <span className="text-muted-foreground">Subtotal: ${calculations.subtotal.toFixed(2)}</span>
-                <span className="text-muted-foreground">Tax: +${calculations.taxAmount.toFixed(2)}</span>
-                <span className="font-bold whitespace-nowrap">Total: ${calculations.total.toFixed(2)}</span>
+          {/* Breakdown Section */}
+          <div className="mb-6">
+            <div className="flex justify-between items-center px-5 py-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-2xl border border-zinc-100 dark:border-zinc-800 shadow-sm">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Tax ({(Number.parseFloat(taxRate) || 0).toFixed(2)}%)
+                </span>
+                <span className="text-base font-bold text-zinc-900 dark:text-zinc-100">
+                  +${calculations.taxAmount.toFixed(2)}
+                </span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="h-10 w-px bg-zinc-200 dark:bg-zinc-700 cursor-help"></div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[280px] bg-zinc-900 text-white border-zinc-700 p-4">
+                  <p className="font-bold mb-3 text-sm">Swedish Rounding Rules</p>
+                  <div className="space-y-2 text-xs">
+                    <p>
+                      <span className="text-red-400 font-semibold">Round Down:</span> ends in 1, 2, 6, 7
+                    </p>
+                    <p>
+                      <span className="text-green-400 font-semibold">Round Up:</span> ends in 3, 4, 8, 9
+                    </p>
+                    <p className="text-zinc-400 pt-2 border-t border-zinc-700">Ends in 0 or 5 stay exact</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+              <div className="flex flex-col items-end">
+                <span className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-1">
+                  Subtotal
+                </span>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
+                  ${calculations.total.toFixed(2)}
+                </span>
               </div>
             </div>
+          </div>
 
-            {/* Success Message for Exact Prices */}
-            {calculations.direction === "none" && (
-              <div className="p-6 bg-green-50 dark:bg-green-950/30 border-2 border-green-500 rounded-xl text-center">
-                <div className="text-4xl mb-2">✓</div>
-                <p className="text-lg font-bold text-green-700 dark:text-green-400">Perfect!</p>
-                <p className="text-sm text-green-600 dark:text-green-500 mt-1">
-                  No rounding needed ${calculations.rounded.toFixed(2)}
-                </p>
+          {/* Divider */}
+          <div className="w-full flex items-center gap-4 opacity-60 mb-6">
+            <div className="h-px bg-zinc-200 dark:bg-zinc-700 flex-1"></div>
+            <span className="text-[10px] font-extrabold text-zinc-400 dark:text-zinc-500 uppercase tracking-[0.2em]">
+              Rounded Prices
+            </span>
+            <div className="flex size-12 items-center justify-center">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                    <HelpCircle className="w-5 h-5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[280px] bg-zinc-900 text-white border-zinc-700 p-4">
+                  <p className="font-bold mb-3 text-sm">Swedish Rounding Rules</p>
+                  <div className="space-y-2 text-xs">
+                    <p>
+                      <span className="text-red-400 font-semibold">Round Down:</span> ends in 1, 2, 6, 7
+                    </p>
+                    <p>
+                      <span className="text-green-400 font-semibold">Round Up:</span> ends in 3, 4, 8, 9
+                    </p>
+                    <p className="text-zinc-400 pt-2 border-t border-zinc-700">Ends in 0 or 5 stay exact</p>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <div className="h-px bg-zinc-200 dark:bg-zinc-700 flex-1"></div>
+          </div>
+
+          {/* Success Message */}
+          {calculations.subtotal > 0 && calculations.direction === "none" && (
+            <div className="mb-6 p-6 bg-emerald-50 dark:bg-emerald-950/20 rounded-2xl border border-emerald-200 dark:border-emerald-900 text-center">
+              <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center mx-auto mb-3">
+                <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
               </div>
-            )}
-          </>
-        )}
+              <p className="text-lg font-bold text-emerald-700 dark:text-emerald-400">Perfect!</p>
+              <p className="text-sm text-emerald-600 dark:text-emerald-500 mt-1">No rounding needed</p>
+            </div>
+          )}
 
-        {hasValidPrice && calculations.direction !== "none" && (
-          <div className="grid grid-cols-2 gap-3">
-            {/* Seller Suggestion */}
-            {calculations.sellerSuggestion && (
-              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/30 border-2 border-emerald-500 rounded-xl">
-                <div className="flex items-center gap-1 mb-2">
-                  <Store className="w-4 h-4 text-emerald-600 dark:text-emerald-500" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-emerald-700 dark:text-emerald-400">
+          {/* Suggestion Cards */}
+          <div className="grid grid-cols-2 gap-3 flex-1 content-start">
+            {/* Seller Card - Left Side, Green */}
+            <div className="flex flex-col bg-white dark:bg-zinc-800 rounded-2xl p-4 shadow-sm border border-zinc-100 dark:border-zinc-700 relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500 transition-all group-hover:w-1.5"></div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+                    <Store className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
                     Seller
                   </span>
                 </div>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Set pre-tax to:</p>
-                    <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono">
-                      ${calculations.sellerSuggestion.preTax.toFixed(2)}
-                    </p>
+                {calculations.sellerSuggestion?.skipped && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="flex-shrink-0 text-amber-500 hover:text-amber-600 transition-colors">
+                        <AlertCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-zinc-900 text-white border-zinc-700">
+                      <p className="text-xs font-semibold">Next reachable nickel</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <div className="mt-auto space-y-2">
+                <div>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Set pre-tax to</span>
+                  <div className="flex items-baseline gap-0.5 mt-0.5">
+                    <span className="text-base text-emerald-600 dark:text-emerald-400 font-bold">$</span>
+                    <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                      {calculations.sellerSuggestion?.preTax.toFixed(2) ?? "0.00"}
+                    </h3>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-0.5">After-tax total:</p>
-                    <p className="text-xl font-bold text-emerald-600 dark:text-emerald-500 font-mono">
-                      ${calculations.sellerSuggestion.total.toFixed(2)}
-                    </p>
+                </div>
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-700">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">After-tax total</span>
+                  <div className="text-lg font-bold text-emerald-600 dark:text-emerald-500 mt-0.5">
+                    ${calculations.sellerSuggestion?.total.toFixed(2) ?? "0.00"}
                   </div>
-                  {calculations.sellerSuggestion.skipped && (
-                    <p className="text-[10px] text-amber-600 dark:text-amber-500 font-medium mt-1">
-                      ⚠ Next reachable nickel
-                    </p>
-                  )}
                 </div>
               </div>
-            )}
+            </div>
 
-            {/* Customer Suggestion */}
-            {calculations.customerSuggestion && (
-              <div className="p-4 bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500 rounded-xl">
-                <div className="flex items-center gap-1 mb-2">
-                  <Users className="w-4 h-4 text-blue-600 dark:text-blue-500" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-blue-700 dark:text-blue-400">
+            {/* Customer Card - Right Side, Blue */}
+            <div className="flex flex-col bg-white dark:bg-zinc-800 rounded-2xl p-4 shadow-sm border border-zinc-100 dark:border-zinc-700 relative overflow-hidden group hover:shadow-md transition-shadow">
+              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 transition-all group-hover:w-1.5"></div>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                    <Users className="w-4 h-4" />
+                  </div>
+                  <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">
                     Customer
                   </span>
                 </div>
-                <div className="space-y-2">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-0.5">Set pre-tax to:</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-400 font-mono">
-                      ${calculations.customerSuggestion.preTax.toFixed(2)}
-                    </p>
+                {calculations.customerSuggestion?.skipped && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button className="flex-shrink-0 text-amber-500 hover:text-amber-600 transition-colors">
+                        <AlertCircle className="w-4 h-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="bg-zinc-900 text-white border-zinc-700">
+                      <p className="text-xs font-semibold">Previous reachable nickel</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+              <div className="mt-auto space-y-2">
+                <div>
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Set pre-tax to</span>
+                  <div className="flex items-baseline gap-0.5 mt-0.5">
+                    <span className="text-base text-blue-600 dark:text-blue-400 font-bold">$</span>
+                    <h3 className="text-2xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
+                      {calculations.customerSuggestion?.preTax.toFixed(2) ?? "0.00"}
+                    </h3>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground mb-0.5">After-tax total:</p>
-                    <p className="text-xl font-bold text-blue-600 dark:text-blue-500 font-mono">
-                      ${calculations.customerSuggestion.total.toFixed(2)}
-                    </p>
+                </div>
+                <div className="pt-2 border-t border-zinc-100 dark:border-zinc-700">
+                  <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">After-tax total</span>
+                  <div className="text-lg font-bold text-blue-600 dark:text-blue-500 mt-0.5">
+                    ${calculations.customerSuggestion?.total.toFixed(2) ?? "0.00"}
                   </div>
-                  {calculations.customerSuggestion.skipped && (
-                    <p className="text-[10px] text-amber-600 dark:text-amber-500 font-medium mt-1">
-                      ⚠ Previous reachable nickel
-                    </p>
-                  )}
                 </div>
               </div>
-            )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </TooltipProvider>
   )
