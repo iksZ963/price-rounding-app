@@ -88,7 +88,6 @@ function calculateSuggestions(preTax: number, taxRate: number) {
 export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
   const [taxRate, setTaxRate] = useState("")
-  const [activeInput, setActiveInput] = useState<"price" | "tax" | null>("price")
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0
@@ -111,40 +110,6 @@ export default function PriceRoundingCalculator() {
       customerSuggestion: suggestions.customer,
     }
   }, [price, taxRate])
-
-  const handleKeypadInput = (value: string) => {
-    if (activeInput === "price") {
-      if (value === "backspace") {
-        setPrice((prev) => prev.slice(0, -1))
-      } else if (value === ".") {
-        if (!price.includes(".")) {
-          // If empty or just starting, prepend "0."
-          setPrice((prev) => (prev === "" ? "0." : prev + "."))
-        }
-      } else {
-        setPrice((prev) => prev + value)
-      }
-    } else if (activeInput === "tax") {
-      if (value === "backspace") {
-        setTaxRate((prev) => prev.slice(0, -1))
-      } else if (value === ".") {
-        if (!taxRate.includes(".")) {
-          // If empty or just starting, prepend "0."
-          setTaxRate((prev) => (prev === "" ? "0." : prev + "."))
-        }
-      } else {
-        const newValue = taxRate + value
-        const numValue = Number.parseFloat(newValue)
-        // Allow the input if it's valid and <= 20, or if it's an incomplete number
-        if (!isNaN(numValue) && numValue <= 20) {
-          setTaxRate(newValue)
-        } else if (newValue.endsWith(".") || /^\d+\.?\d*$/.test(newValue)) {
-          // Allow incomplete decimals like "1."
-          setTaxRate(newValue)
-        }
-      }
-    }
-  }
 
   return (
     <TooltipProvider>
@@ -170,13 +135,7 @@ export default function PriceRoundingCalculator() {
                 placeholder="0"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                onFocus={() => setActiveInput("tax")}
-                readOnly
-                className={`h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 rounded-lg font-semibold shadow-sm cursor-pointer transition-all ${
-                  activeInput === "tax"
-                    ? "border-emerald-500 ring-2 ring-emerald-500/30"
-                    : "border-zinc-200 dark:border-zinc-700"
-                }`}
+                className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm"
               />
               <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">%</span>
             </div>
@@ -187,14 +146,7 @@ export default function PriceRoundingCalculator() {
             <label className="text-[9px] sm:text-[10px] font-bold tracking-widest text-zinc-500 dark:text-zinc-400 uppercase mb-1 sm:mb-1.5">
               Pre-Tax Amount
             </label>
-            <div
-              className={`relative w-full rounded-xl p-1.5 sm:p-2 transition-all cursor-pointer ${
-                activeInput === "price"
-                  ? "bg-emerald-50 dark:bg-emerald-950/20 ring-2 ring-emerald-500/50"
-                  : "bg-transparent"
-              }`}
-              onClick={() => setActiveInput("price")}
-            >
+            <div className="relative w-full rounded-xl p-1.5 sm:p-2">
               <div className="flex items-baseline justify-center gap-1 sm:gap-1.5">
                 <span className="text-xl sm:text-3xl font-semibold text-zinc-400 dark:text-zinc-500 self-start mt-0.5 sm:mt-1">$</span>
                 <Input
@@ -203,9 +155,7 @@ export default function PriceRoundingCalculator() {
                   placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  onFocus={() => setActiveInput("price")}
-                  readOnly
-                  className="text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 cursor-pointer"
+                  className="text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                 />
               </div>
             </div>
@@ -320,6 +270,17 @@ export default function PriceRoundingCalculator() {
                       ${calculations.sellerSuggestion?.total.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
+                  <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
+                      Gross Profit
+                    </span>
+                    <div className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-500">
+                      {calculations.sellerSuggestion
+                        ? `${(((calculations.sellerSuggestion.total - calculations.sellerSuggestion.preTax) / calculations.sellerSuggestion.total) * 100).toFixed(2)}%`
+                        : "0.00%"
+                      }
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -368,97 +329,21 @@ export default function PriceRoundingCalculator() {
                       ${calculations.customerSuggestion?.total.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
+                  <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
+                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
+                      Gross Profit
+                    </span>
+                    <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-500">
+                      {calculations.customerSuggestion
+                        ? `${(((calculations.customerSuggestion.total - calculations.customerSuggestion.preTax) / calculations.customerSuggestion.total) * 100).toFixed(2)}%`
+                        : "0.00%"
+                      }
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           )}
-        </div>
-
-        {/* Keypad Section */}
-        <div className="bg-[#f0f2f4] dark:bg-[#151c2b] rounded-t-3xl p-4 sm:p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] border-t border-white/50 dark:border-zinc-800">
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-sm mx-auto">
-            {/* Row 1 */}
-            <button
-              onClick={() => handleKeypadInput("1")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              1
-            </button>
-            <button
-              onClick={() => handleKeypadInput("2")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              2
-            </button>
-            <button
-              onClick={() => handleKeypadInput("3")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              3
-            </button>
-
-            {/* Row 2 */}
-            <button
-              onClick={() => handleKeypadInput("4")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              4
-            </button>
-            <button
-              onClick={() => handleKeypadInput("5")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              5
-            </button>
-            <button
-              onClick={() => handleKeypadInput("6")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              6
-            </button>
-
-            {/* Row 3 */}
-            <button
-              onClick={() => handleKeypadInput("7")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              7
-            </button>
-            <button
-              onClick={() => handleKeypadInput("8")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              8
-            </button>
-            <button
-              onClick={() => handleKeypadInput("9")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              9
-            </button>
-
-            {/* Row 4 */}
-            <button
-              onClick={() => handleKeypadInput(".")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              .
-            </button>
-            <button
-              onClick={() => handleKeypadInput("0")}
-              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
-            >
-              0
-            </button>
-            <button
-              onClick={() => handleKeypadInput("backspace")}
-              className="h-14 sm:h-16 rounded-2xl bg-transparent text-zinc-600 dark:text-zinc-400 active:text-emerald-600 transition-all flex items-center justify-center hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50"
-            >
-              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
-              </svg>
-            </button>
-          </div>
         </div>
       </div>
     </TooltipProvider>
