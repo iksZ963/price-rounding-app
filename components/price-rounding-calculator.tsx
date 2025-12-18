@@ -135,7 +135,7 @@ export default function PriceRoundingCalculator() {
                 placeholder="0"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
-                className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm"
+                className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm focus-visible:ring-0 focus-visible:border-zinc-400 dark:focus-visible:border-zinc-500"
               />
               <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">%</span>
             </div>
@@ -155,7 +155,7 @@ export default function PriceRoundingCalculator() {
                   placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
-                  className="text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
+                  className="text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                 />
               </div>
             </div>
