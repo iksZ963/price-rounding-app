@@ -148,7 +148,7 @@ export default function PriceRoundingCalculator() {
 
   return (
     <TooltipProvider>
-      <div className="relative flex h-screen max-h-[667px] w-full max-w-[480px] mx-auto flex-col bg-white dark:bg-zinc-900 overflow-hidden shadow-2xl sm:rounded-3xl border border-zinc-100 dark:border-zinc-800">
+      <div className="relative flex h-screen w-full max-w-[480px] mx-auto flex-col bg-white dark:bg-zinc-900 overflow-hidden">
         {/* Header */}
         <div className="flex bg-white dark:bg-zinc-900 px-4 py-2 z-10 border-zinc-100 dark:border-zinc-800 items-center justify-center border-b">
           <h2 className="text-zinc-900 dark:text-white text-base font-bold leading-tight tracking-tight text-center">
@@ -165,10 +165,8 @@ export default function PriceRoundingCalculator() {
             </label>
             <div className="relative">
               <Input
-                type="number"
-                step="0.01"
-                min="0"
-                max="20"
+                type="text"
+                inputMode="decimal"
                 placeholder="0"
                 value={taxRate}
                 onChange={(e) => setTaxRate(e.target.value)}
@@ -185,17 +183,6 @@ export default function PriceRoundingCalculator() {
           </div>
 
           {/* Pre-Tax Price - Large Display Style */}
-          <style jsx>{`
-            input[type="number"]::-webkit-outer-spin-button,
-            input[type="number"]::-webkit-inner-spin-button {
-              -webkit-appearance: none;
-              margin: 0;
-            }
-            input[type="number"] {
-              -moz-appearance: textfield;
-            }
-          `}</style>
-
           <div className="flex flex-col items-center justify-center py-2 mb-1.5">
             <label className="text-[9px] font-bold tracking-widest text-zinc-500 dark:text-zinc-400 uppercase mb-1.5">
               Pre-Tax Amount
@@ -211,15 +198,14 @@ export default function PriceRoundingCalculator() {
               <div className="flex items-baseline justify-center gap-1">
                 <span className="text-xl font-semibold text-zinc-400 dark:text-zinc-500 self-start mt-0.5">$</span>
                 <Input
-                  type="number"
-                  step="0.01"
-                  min="0"
+                  type="text"
+                  inputMode="decimal"
                   placeholder="0.00"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                   onFocus={() => setActiveInput("price")}
                   readOnly
-                  className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none cursor-pointer"
+                  className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700 cursor-pointer"
                 />
               </div>
             </div>
