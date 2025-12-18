@@ -372,25 +372,27 @@ export default function PriceRoundingCalculator() {
               </div>
             </div>
           )}
+        </div>
 
-          {/* Keypad */}
-          <div className="grid grid-cols-3 gap-2 sm:gap-3 mt-auto">
+        {/* Keypad Section */}
+        <div className="bg-[#f0f2f4] dark:bg-[#151c2b] rounded-t-3xl p-4 sm:p-6 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] border-t border-white/50 dark:border-zinc-800">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-sm mx-auto">
             {/* Row 1 */}
             <button
               onClick={() => handleKeypadInput("1")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               1
             </button>
             <button
               onClick={() => handleKeypadInput("2")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               2
             </button>
             <button
               onClick={() => handleKeypadInput("3")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               3
             </button>
@@ -398,19 +400,19 @@ export default function PriceRoundingCalculator() {
             {/* Row 2 */}
             <button
               onClick={() => handleKeypadInput("4")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               4
             </button>
             <button
               onClick={() => handleKeypadInput("5")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               5
             </button>
             <button
               onClick={() => handleKeypadInput("6")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               6
             </button>
@@ -418,19 +420,19 @@ export default function PriceRoundingCalculator() {
             {/* Row 3 */}
             <button
               onClick={() => handleKeypadInput("7")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               7
             </button>
             <button
               onClick={() => handleKeypadInput("8")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               8
             </button>
             <button
               onClick={() => handleKeypadInput("9")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               9
             </button>
@@ -438,21 +440,21 @@ export default function PriceRoundingCalculator() {
             {/* Row 4 */}
             <button
               onClick={() => handleKeypadInput(".")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               .
             </button>
             <button
               onClick={() => handleKeypadInput("0")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white font-bold text-lg sm:text-xl hover:bg-zinc-50 dark:hover:bg-zinc-700 active:scale-95 transition-all shadow-sm"
+              className="h-14 sm:h-16 rounded-2xl bg-white dark:bg-zinc-800 shadow-[0_2px_0_rgba(0,0,0,0.05)] text-xl sm:text-2xl font-medium text-zinc-900 dark:text-white active:scale-95 active:bg-zinc-50 dark:active:bg-zinc-700 transition-all flex items-center justify-center"
             >
               0
             </button>
             <button
               onClick={() => handleKeypadInput("backspace")}
-              className="h-11 sm:h-13 rounded-lg sm:rounded-xl bg-red-50 dark:bg-red-950/20 border-2 border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 font-bold text-lg sm:text-xl hover:bg-red-100 dark:hover:bg-red-950/40 active:scale-95 transition-all shadow-sm flex items-center justify-center"
+              className="h-14 sm:h-16 rounded-2xl bg-transparent text-zinc-600 dark:text-zinc-400 active:text-emerald-600 transition-all flex items-center justify-center hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50"
             >
-              <svg className="w-5 sm:w-6 h-5 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M3 12l6.414 6.414a2 2 0 001.414.586H19a2 2 0 002-2V7a2 2 0 00-2-2h-8.172a2 2 0 00-1.414.586L3 12z" />
               </svg>
             </button>
