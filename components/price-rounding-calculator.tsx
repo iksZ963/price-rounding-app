@@ -270,17 +270,6 @@ export default function PriceRoundingCalculator() {
                       ${calculations.sellerSuggestion?.total.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
-                  <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
-                      Gross Profit
-                    </span>
-                    <div className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-500">
-                      {calculations.sellerSuggestion
-                        ? `${(((calculations.sellerSuggestion.total - calculations.sellerSuggestion.preTax) / calculations.sellerSuggestion.total) * 100).toFixed(2)}%`
-                        : "0.00%"
-                      }
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -327,17 +316,6 @@ export default function PriceRoundingCalculator() {
                     </span>
                     <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-500">
                       ${calculations.customerSuggestion?.total.toFixed(2) ?? "0.00"}
-                    </div>
-                  </div>
-                  <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
-                    <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
-                      Gross Profit
-                    </span>
-                    <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-500">
-                      {calculations.customerSuggestion
-                        ? `${(((calculations.customerSuggestion.total - calculations.customerSuggestion.preTax) / calculations.customerSuggestion.total) * 100).toFixed(2)}%`
-                        : "0.00%"
-                      }
                     </div>
                   </div>
                 </div>
