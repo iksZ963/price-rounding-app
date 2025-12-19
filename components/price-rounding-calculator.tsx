@@ -88,7 +88,6 @@ function calculateSuggestions(preTax: number, taxRate: number) {
 export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
   const [taxRate, setTaxRate] = useState("")
-  const [costPrice, setCostPrice] = useState("")
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0
@@ -124,42 +123,21 @@ export default function PriceRoundingCalculator() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col px-4 sm:px-6 pt-2 sm:pt-3 pb-2 sm:pb-3">
-          {/* Tax Rate and Cost Price Inputs */}
-          <div className="grid grid-cols-2 gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-            {/* Tax Rate Input */}
-            <div>
-              <label className="text-[10px] sm:text-xs font-bold tracking-wide text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">
-                Tax Rate
-              </label>
-              <div className="relative">
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0"
-                  value={taxRate}
-                  onChange={(e) => setTaxRate(e.target.value)}
-                  className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm focus-visible:ring-0 focus-visible:border-zinc-400 dark:focus-visible:border-zinc-500"
-                />
-                <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">%</span>
-              </div>
-            </div>
-
-            {/* Cost Price Input */}
-            <div>
-              <label className="text-[10px] sm:text-xs font-bold tracking-wide text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">
-                Cost Price
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">$</span>
-                <Input
-                  type="text"
-                  inputMode="decimal"
-                  placeholder="0.00"
-                  value={costPrice}
-                  onChange={(e) => setCostPrice(e.target.value)}
-                  className="h-8 sm:h-10 text-sm sm:text-base pl-8 sm:pl-10 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm focus-visible:ring-0 focus-visible:border-zinc-400 dark:focus-visible:border-zinc-500"
-                />
-              </div>
+          {/* Tax Rate Input */}
+          <div className="mb-1.5 sm:mb-2">
+            <label className="text-[10px] sm:text-xs font-bold tracking-wide text-zinc-500 dark:text-zinc-400 uppercase mb-1 block">
+              Tax Rate
+            </label>
+            <div className="relative">
+              <Input
+                type="text"
+                inputMode="decimal"
+                placeholder="0"
+                value={taxRate}
+                onChange={(e) => setTaxRate(e.target.value)}
+                className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm focus-visible:ring-0 focus-visible:border-zinc-400 dark:focus-visible:border-zinc-500"
+              />
+              <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">%</span>
             </div>
           </div>
 
@@ -292,19 +270,6 @@ export default function PriceRoundingCalculator() {
                       ${calculations.sellerSuggestion?.total.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
-                  {costPrice && Number.parseFloat(costPrice) > 0 && (
-                    <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
-                        Gross Profit
-                      </span>
-                      <div className="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-500">
-                        {calculations.sellerSuggestion
-                          ? `${(((calculations.sellerSuggestion.total - Number.parseFloat(costPrice)) / calculations.sellerSuggestion.total) * 100).toFixed(2)}%`
-                          : "0.00%"
-                        }
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
 
@@ -353,19 +318,6 @@ export default function PriceRoundingCalculator() {
                       ${calculations.customerSuggestion?.total.toFixed(2) ?? "0.00"}
                     </div>
                   </div>
-                  {costPrice && Number.parseFloat(costPrice) > 0 && (
-                    <div className="pt-1.5 sm:pt-2 border-t border-zinc-100 dark:border-zinc-700">
-                      <span className="text-[8px] sm:text-[9px] font-bold text-zinc-400 uppercase tracking-wider block mb-0.5">
-                        Gross Profit
-                      </span>
-                      <div className="text-lg sm:text-xl font-bold text-blue-600 dark:text-blue-500">
-                        {calculations.customerSuggestion
-                          ? `${(((calculations.customerSuggestion.total - Number.parseFloat(costPrice)) / calculations.customerSuggestion.total) * 100).toFixed(2)}%`
-                          : "0.00%"
-                        }
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
