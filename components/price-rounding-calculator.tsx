@@ -115,7 +115,7 @@ export default function PriceRoundingCalculator() {
     <TooltipProvider>
       <div className="relative flex h-screen w-full max-w-[480px] mx-auto flex-col bg-white dark:bg-zinc-900 overflow-hidden">
         {/* Header */}
-        <div className="flex bg-white dark:bg-zinc-900 px-4 sm:px-6 py-2 sm:py-2.5 z-10 border-zinc-100 dark:border-zinc-800 items-center justify-center border-b">
+        <div className="flex bg-white dark:bg-zinc-900 px-4 sm:px-6 pt-16 pb-4 z-10 border-zinc-100 dark:border-zinc-800 items-center justify-center border-b">
           <h2 className="text-zinc-900 dark:text-white text-base sm:text-lg font-bold leading-tight tracking-tight text-center">
             Penny Rounding Calculator
           </h2>
