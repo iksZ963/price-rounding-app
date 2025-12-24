@@ -25,3 +25,34 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ===== Android / Capacitor =====
+
+# Keystore (NEVER commit these!)
+*.jks
+*.keystore
+
+# Build outputs
+android/app/build/
+android/build/
+android/.gradle/
+
+# IDE files
+android/.idea/
+android/*.iml
+
+# Local properties
+android/local.properties
+
+# Generated web assets (rebuilt via cap sync)
+android/app/src/main/assets/public/
+
+# Capacitor plugins build
+android/capacitor-cordova-android-plugins/build/
+
+# ===== iOS =====
+ios/App/build/
+ios/App/Pods/
+ios/.idea/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
