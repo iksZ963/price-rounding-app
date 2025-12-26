@@ -1,61 +1,99 @@
-'use client'
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  Pressable,
+  StyleSheet,
+  useColorScheme,
+} from 'react-native';
 
-import * as React from 'react'
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
-
-import { cn } from '@/lib/utils'
-
-function TooltipProvider({
-  delayDuration = 0,
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Provider>) {
-  return (
-    <TooltipPrimitive.Provider
-      data-slot="tooltip-provider"
-      delayDuration={delayDuration}
-      {...props}
-    />
-  )
+interface TooltipProps {
+  children: React.ReactNode;
+  content: React.ReactNode;
 }
 
-function Tooltip({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Root>) {
-  return (
-    <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
-    </TooltipProvider>
-  )
-}
-
-function TooltipTrigger({
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Trigger>) {
-  return <TooltipPrimitive.Trigger data-slot="tooltip-trigger" {...props} />
-}
-
-function TooltipContent({
-  className,
-  sideOffset = 0,
+export const TooltipProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
-  ...props
-}: React.ComponentProps<typeof TooltipPrimitive.Content>) {
-  return (
-    <TooltipPrimitive.Portal>
-      <TooltipPrimitive.Content
-        data-slot="tooltip-content"
-        sideOffset={sideOffset}
-        className={cn(
-          'bg-foreground text-background animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-50 w-fit origin-(--radix-tooltip-content-transform-origin) rounded-md px-3 py-1.5 text-xs text-balance',
-          className,
-        )}
-        {...props}
-      >
-        {children}
-        <TooltipPrimitive.Arrow className="bg-foreground fill-foreground z-50 size-2.5 translate-y-[calc(-50%_-_2px)] rotate-45 rounded-[2px]" />
-      </TooltipPrimitive.Content>
-    </TooltipPrimitive.Portal>
-  )
-}
+}) => {
+  return <>{children}</>;
+};
 
-export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider }
+export const Tooltip: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  return <>{children}</>;
+};
+
+export const TooltipTrigger: React.FC<{
+  children: React.ReactNode;
+  asChild?: boolean;
+}> = ({ children }) => {
+  return <>{children}</>;
+};
+
+export const TooltipContent: React.FC<{
+  children: React.ReactNode;
+  side?: string;
+  className?: string;
+}> = ({ children }) => {
+  return null;
+};
+
+export const TooltipWrapper: React.FC<TooltipProps> = ({
+  children,
+  content,
+}) => {
+  const [visible, setVisible] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  return (
+    <>
+      <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+      <Modal
+        visible={visible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setVisible(false)}
+      >
+        <Pressable
+          style={styles.overlay}
+          onPress={() => setVisible(false)}
+        >
+          <View
+            style={[
+              styles.tooltipContent,
+              isDark ? styles.tooltipDark : styles.tooltipLight,
+            ]}
+          >
+            {content}
+          </View>
+        </Pressable>
+      </Modal>
+    </>
+  );
+};
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tooltipContent: {
+    maxWidth: 260,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  tooltipLight: {
+    backgroundColor: '#18181b',
+    borderColor: '#3f3f46',
+  },
+  tooltipDark: {
+    backgroundColor: '#18181b',
+    borderColor: '#3f3f46',
+  },
+});
