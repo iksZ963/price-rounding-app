@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import {
   View,
-  Text,
   Modal,
   Pressable,
   StyleSheet,
-  useColorScheme,
 } from 'react-native';
 
 interface TooltipProps {
@@ -45,8 +43,6 @@ export const TooltipWrapper: React.FC<TooltipProps> = ({
   content,
 }) => {
   const [visible, setVisible] = useState(false);
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
 
   return (
     <>
@@ -61,12 +57,7 @@ export const TooltipWrapper: React.FC<TooltipProps> = ({
           style={styles.overlay}
           onPress={() => setVisible(false)}
         >
-          <View
-            style={[
-              styles.tooltipContent,
-              isDark ? styles.tooltipDark : styles.tooltipLight,
-            ]}
-          >
+          <View style={styles.tooltipContent}>
             {content}
           </View>
         </Pressable>
@@ -87,12 +78,6 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-  },
-  tooltipLight: {
-    backgroundColor: '#18181b',
-    borderColor: '#3f3f46',
-  },
-  tooltipDark: {
     backgroundColor: '#18181b',
     borderColor: '#3f3f46',
   },

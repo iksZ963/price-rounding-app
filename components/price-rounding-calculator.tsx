@@ -1,15 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
-  useColorScheme,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
   Pressable,
 } from 'react-native';
 import { Input } from './ui/input';
 import { TooltipWrapper } from './ui/tooltip';
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Circle } from 'react-native-svg';
 
 function roundToNickel(amount: number): { rounded: number; direction: 'up' | 'down' | 'none' } {
   const cents = Math.round(amount * 100);
@@ -160,11 +161,37 @@ const CheckIcon = () => (
   </Svg>
 );
 
+const HelpCircleIcon = ({ size = 14, color = '#71717a' }: { size?: number; color?: string }) => (
+  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
+    <Path
+      d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
+      stroke={color}
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </Svg>
+);
+
 export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState('');
   const [taxRate, setTaxRate] = useState('');
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setIsKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setIsKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0;
@@ -189,15 +216,19 @@ export default function PriceRoundingCalculator() {
   }, [price, taxRate]);
 
   return (
-    <View style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
-      <View style={[styles.header, isDark ? styles.headerDark : styles.headerLight]}>
-        <Text style={[styles.headerText, isDark ? styles.textWhite : styles.textDark]}>
-          Penny Rounding Calculator
-        </Text>
-      </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+    >
+      {!isKeyboardVisible && (
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Penny Rounding Calculator</Text>
+        </View>
+      )}
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
-        <View style={styles.section}>
+      <View style={[styles.content, isKeyboardVisible && styles.contentCompact]}>
+        <View style={[styles.section, isKeyboardVisible && styles.sectionCompact]}>
           <Text style={[styles.label, styles.labelSmall]}>TAX RATE</Text>
           <View style={styles.inputWrapper}>
             <Input
@@ -205,93 +236,96 @@ export default function PriceRoundingCalculator() {
               placeholder="0"
               value={taxRate}
               onChangeText={setTaxRate}
-              style={styles.taxInput}
+              style={[styles.taxInput, isKeyboardVisible && styles.taxInputCompact]}
             />
-            <Text style={[styles.inputSuffix, isDark ? styles.textGray : styles.textGrayLight]}>%</Text>
+            <Text style={styles.inputSuffix}>%</Text>
           </View>
         </View>
 
-        <View style={styles.preTaxSection}>
+        <View style={[styles.preTaxSection, isKeyboardVisible && styles.preTaxSectionCompact]}>
           <Text style={[styles.label, styles.labelTiny]}>PRE-TAX AMOUNT</Text>
           <View style={styles.preTaxInputWrapper}>
-            <Text style={[styles.dollarSign, isDark ? styles.textGrayDark : styles.textGrayLight]}>$</Text>
+            <Text style={[styles.dollarSign, isKeyboardVisible && styles.dollarSignCompact]}>$</Text>
             <Input
               keyboardType="decimal-pad"
               placeholder="0.00"
               value={price}
               onChangeText={setPrice}
-              style={[styles.preTaxInput, isDark ? styles.textWhite : styles.textDark]}
+              style={[styles.preTaxInput, isKeyboardVisible && styles.preTaxInputCompact]}
             />
           </View>
         </View>
 
-        <View style={[styles.breakdown, isDark ? styles.breakdownDark : styles.breakdownLight]}>
+        <View style={[styles.breakdown, isKeyboardVisible && styles.breakdownCompact]}>
           <View style={styles.breakdownLeft}>
             <Text style={[styles.breakdownLabel, styles.labelTiny]}>
               TAX ({(Number.parseFloat(taxRate) || 0).toFixed(2)}%)
             </Text>
-            <Text style={[styles.breakdownValue, isDark ? styles.textWhite : styles.textDark]}>
+            <Text style={[styles.breakdownValue, isKeyboardVisible && styles.breakdownValueCompact]}>
               +${calculations.taxAmount.toFixed(2)}
             </Text>
           </View>
 
-          <TooltipWrapper
-            content={
-              <View>
-                <Text style={styles.tooltipTitle}>Swedish Rounding Rules</Text>
-                <View style={styles.tooltipContent}>
-                  <Text style={styles.tooltipText}>
-                    <Text style={styles.tooltipRed}>Round Down:</Text> ends in 1, 2, 6, 7
-                  </Text>
-                  <Text style={styles.tooltipText}>
-                    <Text style={styles.tooltipGreen}>Round Up:</Text> ends in 3, 4, 8, 9
-                  </Text>
-                  <Text style={[styles.tooltipText, styles.tooltipFooter]}>
-                    Ends in 0 or 5 stay exact
-                  </Text>
-                </View>
-              </View>
-            }
-          >
-            <View style={[styles.divider, isDark ? styles.dividerDark : styles.dividerLight]} />
-          </TooltipWrapper>
+          <View style={styles.divider} />
 
           <View style={styles.breakdownRight}>
-            <Text style={[styles.breakdownLabel, styles.labelTiny]}>SUBTOTAL</Text>
-            <Text style={[styles.breakdownTotal, isDark ? styles.textWhite : styles.textDark]}>
+            <View style={styles.breakdownRightHeader}>
+              <Text style={[styles.breakdownLabel, styles.labelTiny]}>SUBTOTAL</Text>
+              <TooltipWrapper
+                content={
+                  <View>
+                    <Text style={styles.tooltipTitle}>Swedish Rounding Rules</Text>
+                    <View style={styles.tooltipContent}>
+                      <Text style={styles.tooltipText}>
+                        <Text style={styles.tooltipRed}>Round Down:</Text> ends in 1, 2, 6, 7
+                      </Text>
+                      <Text style={styles.tooltipText}>
+                        <Text style={styles.tooltipGreen}>Round Up:</Text> ends in 3, 4, 8, 9
+                      </Text>
+                      <Text style={[styles.tooltipText, styles.tooltipFooter]}>
+                        Ends in 0 or 5 stay exact
+                      </Text>
+                    </View>
+                  </View>
+                }
+              >
+                <Pressable hitSlop={8}>
+                  <HelpCircleIcon size={12} color="#71717a" />
+                </Pressable>
+              </TooltipWrapper>
+            </View>
+            <Text style={[styles.breakdownTotal, isKeyboardVisible && styles.breakdownTotalCompact]}>
               ${calculations.total.toFixed(2)}
             </Text>
           </View>
         </View>
 
-        <View style={styles.dividerSection}>
-          <View style={[styles.dividerLine, isDark ? styles.dividerDark : styles.dividerLight]} />
-          <Text style={[styles.dividerText, styles.labelTiny]}>ROUNDED PRICES</Text>
-          <View style={[styles.dividerLine, isDark ? styles.dividerDark : styles.dividerLight]} />
-        </View>
+        {!isKeyboardVisible && (
+          <View style={styles.dividerSection}>
+            <View style={styles.dividerLine} />
+            <Text style={[styles.dividerText, styles.labelTiny]}>ROUNDED PRICES</Text>
+            <View style={styles.dividerLine} />
+          </View>
+        )}
 
         {calculations.subtotal > 0 && calculations.direction === 'none' && (
-          <View style={[styles.successCard, isDark ? styles.successCardDark : styles.successCardLight]}>
+          <View style={[styles.successCard, isKeyboardVisible && styles.successCardCompact]}>
             <View style={styles.successIcon}>
               <CheckIcon />
             </View>
-            <Text style={[styles.successTitle, isDark ? styles.successTitleDark : styles.successTitleLight]}>
-              Perfect!
-            </Text>
-            <Text style={[styles.successSubtitle, isDark ? styles.successSubtitleDark : styles.successSubtitleLight]}>
-              No rounding needed
-            </Text>
+            <Text style={styles.successTitle}>Perfect!</Text>
+            <Text style={styles.successSubtitle}>No rounding needed</Text>
           </View>
         )}
 
         {!(calculations.subtotal > 0 && calculations.direction === 'none') && (
-          <View style={styles.cardsContainer}>
-            <View style={[styles.card, isDark ? styles.cardDark : styles.cardLight]}>
+          <View style={[styles.cardsContainer, isKeyboardVisible && styles.cardsContainerCompact]}>
+            <View style={styles.card}>
               <View style={styles.cardAccentGreen} />
-              <View style={styles.cardHeader}>
+              <View style={[styles.cardHeader, isKeyboardVisible && styles.cardHeaderCompact]}>
                 <View style={styles.cardIconWrapper}>
                   <View style={[styles.iconBg, styles.iconBgGreen]}>
-                    <StoreIcon size={16} color="#10b981" />
+                    <StoreIcon size={14} color="#10b981" />
                   </View>
                   <Text style={[styles.cardLabel, styles.labelSmall]}>SELLER</Text>
                 </View>
@@ -301,37 +335,37 @@ export default function PriceRoundingCalculator() {
                       <Text style={styles.tooltipSimple}>Next reachable nickel</Text>
                     }
                   >
-                    <Pressable>
-                      <AlertCircleIcon size={16} color="#f59e0b" />
+                    <Pressable hitSlop={8}>
+                      <AlertCircleIcon size={14} color="#f59e0b" />
                     </Pressable>
                   </TooltipWrapper>
                 )}
               </View>
               <View style={styles.cardBody}>
-                <View style={styles.cardValueSection}>
+                <View style={[styles.cardValueSection, isKeyboardVisible && styles.cardValueSectionCompact]}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>SET PRE-TAX TO</Text>
                   <View style={styles.cardPriceWrapper}>
-                    <Text style={styles.cardDollarGreen}>$</Text>
-                    <Text style={[styles.cardPrice, isDark ? styles.textWhite : styles.textDark]}>
+                    <Text style={[styles.cardDollarGreen, isKeyboardVisible && styles.cardDollarCompact]}>$</Text>
+                    <Text style={[styles.cardPrice, isKeyboardVisible && styles.cardPriceCompact]}>
                       {calculations.sellerSuggestion?.preTax.toFixed(2) ?? '0.00'}
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.cardTotal, isDark ? styles.cardTotalDark : styles.cardTotalLight]}>
+                <View style={[styles.cardTotal, isKeyboardVisible && styles.cardTotalCompact]}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>AFTER-TAX TOTAL</Text>
-                  <Text style={styles.cardTotalValueGreen}>
+                  <Text style={[styles.cardTotalValueGreen, isKeyboardVisible && styles.cardTotalValueCompact]}>
                     ${calculations.sellerSuggestion?.total.toFixed(2) ?? '0.00'}
                   </Text>
                 </View>
               </View>
             </View>
 
-            <View style={[styles.card, isDark ? styles.cardDark : styles.cardLight]}>
+            <View style={styles.card}>
               <View style={styles.cardAccentBlue} />
-              <View style={styles.cardHeader}>
+              <View style={[styles.cardHeader, isKeyboardVisible && styles.cardHeaderCompact]}>
                 <View style={styles.cardIconWrapper}>
                   <View style={[styles.iconBg, styles.iconBgBlue]}>
-                    <UsersIcon size={16} color="#3b82f6" />
+                    <UsersIcon size={14} color="#3b82f6" />
                   </View>
                   <Text style={[styles.cardLabel, styles.labelSmall]}>CUSTOMER</Text>
                 </View>
@@ -341,25 +375,25 @@ export default function PriceRoundingCalculator() {
                       <Text style={styles.tooltipSimple}>Previous reachable nickel</Text>
                     }
                   >
-                    <Pressable>
-                      <AlertCircleIcon size={16} color="#f59e0b" />
+                    <Pressable hitSlop={8}>
+                      <AlertCircleIcon size={14} color="#f59e0b" />
                     </Pressable>
                   </TooltipWrapper>
                 )}
               </View>
               <View style={styles.cardBody}>
-                <View style={styles.cardValueSection}>
+                <View style={[styles.cardValueSection, isKeyboardVisible && styles.cardValueSectionCompact]}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>SET PRE-TAX TO</Text>
                   <View style={styles.cardPriceWrapper}>
-                    <Text style={styles.cardDollarBlue}>$</Text>
-                    <Text style={[styles.cardPrice, isDark ? styles.textWhite : styles.textDark]}>
+                    <Text style={[styles.cardDollarBlue, isKeyboardVisible && styles.cardDollarCompact]}>$</Text>
+                    <Text style={[styles.cardPrice, isKeyboardVisible && styles.cardPriceCompact]}>
                       {calculations.customerSuggestion?.preTax.toFixed(2) ?? '0.00'}
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.cardTotal, isDark ? styles.cardTotalDark : styles.cardTotalLight]}>
+                <View style={[styles.cardTotal, isKeyboardVisible && styles.cardTotalCompact]}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>AFTER-TAX TOTAL</Text>
-                  <Text style={styles.cardTotalValueBlue}>
+                  <Text style={[styles.cardTotalValueBlue, isKeyboardVisible && styles.cardTotalValueCompact]}>
                     ${calculations.customerSuggestion?.total.toFixed(2) ?? '0.00'}
                   </Text>
                 </View>
@@ -367,8 +401,8 @@ export default function PriceRoundingCalculator() {
             </View>
           </View>
         )}
-      </ScrollView>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -378,45 +412,40 @@ const styles = StyleSheet.create({
     maxWidth: 480,
     width: '100%',
     alignSelf: 'center',
-  },
-  containerLight: {
     backgroundColor: '#ffffff',
-  },
-  containerDark: {
-    backgroundColor: '#18181b',
   },
   header: {
     paddingHorizontal: 24,
     paddingTop: 64,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerLight: {
     backgroundColor: '#ffffff',
     borderBottomColor: '#f4f4f5',
-  },
-  headerDark: {
-    backgroundColor: '#18181b',
-    borderBottomColor: '#27272a',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerText: {
     fontSize: 18,
     fontWeight: 'bold',
     textAlign: 'center',
     letterSpacing: -0.5,
+    color: '#18181b',
   },
   content: {
     flex: 1,
-  },
-  contentContainer: {
     paddingHorizontal: 24,
     paddingTop: 12,
     paddingBottom: 12,
   },
+  contentCompact: {
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
   section: {
     marginBottom: 8,
+  },
+  sectionCompact: {
+    marginBottom: 4,
   },
   label: {
     fontWeight: 'bold',
@@ -439,6 +468,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingRight: 48,
   },
+  taxInputCompact: {
+    height: 32,
+    fontSize: 14,
+  },
   inputSuffix: {
     position: 'absolute',
     right: 16,
@@ -446,12 +479,17 @@ const styles = StyleSheet.create({
     marginTop: -10,
     fontSize: 16,
     fontWeight: '600',
+    color: '#a1a1aa',
   },
   preTaxSection: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
     marginBottom: 8,
+  },
+  preTaxSectionCompact: {
+    paddingVertical: 4,
+    marginBottom: 4,
   },
   preTaxInputWrapper: {
     flexDirection: 'row',
@@ -463,6 +501,10 @@ const styles = StyleSheet.create({
   dollarSign: {
     fontSize: 32,
     fontWeight: '600',
+    color: '#a1a1aa',
+  },
+  dollarSignCompact: {
+    fontSize: 22,
   },
   preTaxInput: {
     flex: 1,
@@ -473,6 +515,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     padding: 0,
     height: 60,
+    color: '#18181b',
+  },
+  preTaxInputCompact: {
+    fontSize: 28,
+    height: 40,
   },
   breakdown: {
     flexDirection: 'row',
@@ -483,14 +530,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     marginBottom: 8,
-  },
-  breakdownLight: {
     backgroundColor: '#fafafa',
     borderColor: '#f4f4f5',
   },
-  breakdownDark: {
-    backgroundColor: 'rgba(39, 39, 42, 0.5)',
-    borderColor: '#27272a',
+  breakdownCompact: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginBottom: 4,
   },
   breakdownLeft: {
     flexDirection: 'column',
@@ -502,25 +548,33 @@ const styles = StyleSheet.create({
   breakdownValue: {
     fontSize: 16,
     fontWeight: 'bold',
+    color: '#18181b',
+  },
+  breakdownValueCompact: {
+    fontSize: 14,
   },
   divider: {
     width: 1,
     height: 40,
-  },
-  dividerLight: {
     backgroundColor: '#e4e4e7',
-  },
-  dividerDark: {
-    backgroundColor: '#3f3f46',
   },
   breakdownRight: {
     flexDirection: 'column',
     alignItems: 'flex-end',
   },
+  breakdownRightHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   breakdownTotal: {
     fontSize: 20,
     fontWeight: 'bold',
     letterSpacing: -0.5,
+    color: '#18181b',
+  },
+  breakdownTotalCompact: {
+    fontSize: 16,
   },
   dividerSection: {
     flexDirection: 'row',
@@ -532,6 +586,7 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
+    backgroundColor: '#e4e4e7',
   },
   dividerText: {
     letterSpacing: 1.5,
@@ -542,14 +597,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     alignItems: 'center',
     marginBottom: 8,
-  },
-  successCardLight: {
     backgroundColor: '#ecfdf5',
     borderColor: '#d1fae5',
   },
-  successCardDark: {
-    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-    borderColor: '#064e3b',
+  successCardCompact: {
+    padding: 8,
+    marginBottom: 4,
   },
   successIcon: {
     width: 36,
@@ -563,26 +616,20 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  successTitleLight: {
     color: '#047857',
-  },
-  successTitleDark: {
-    color: '#34d399',
   },
   successSubtitle: {
     fontSize: 14,
-  },
-  successSubtitleLight: {
     color: '#059669',
-  },
-  successSubtitleDark: {
-    color: '#10b981',
   },
   cardsContainer: {
     flexDirection: 'row',
     gap: 12,
     marginBottom: 8,
+  },
+  cardsContainerCompact: {
+    gap: 8,
+    marginBottom: 4,
   },
   card: {
     flex: 1,
@@ -591,14 +638,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     position: 'relative',
     overflow: 'hidden',
-  },
-  cardLight: {
     backgroundColor: '#ffffff',
     borderColor: '#f4f4f5',
-  },
-  cardDark: {
-    backgroundColor: '#27272a',
-    borderColor: '#3f3f46',
   },
   cardAccentGreen: {
     position: 'absolute',
@@ -607,6 +648,8 @@ const styles = StyleSheet.create({
     width: 6,
     height: '100%',
     backgroundColor: '#10b981',
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   cardAccentBlue: {
     position: 'absolute',
@@ -615,12 +658,17 @@ const styles = StyleSheet.create({
     width: 6,
     height: '100%',
     backgroundColor: '#3b82f6',
+    borderTopLeftRadius: 10,
+    borderBottomLeftRadius: 10,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  cardHeaderCompact: {
+    marginBottom: 4,
   },
   cardIconWrapper: {
     flexDirection: 'row',
@@ -646,6 +694,9 @@ const styles = StyleSheet.create({
   cardValueSection: {
     marginBottom: 8,
   },
+  cardValueSectionCompact: {
+    marginBottom: 4,
+  },
   cardSubLabel: {
     letterSpacing: 1.5,
     marginBottom: 2,
@@ -665,20 +716,25 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#3b82f6',
   },
+  cardDollarCompact: {
+    fontSize: 14,
+  },
   cardPrice: {
     fontSize: 32,
     fontWeight: '900',
     letterSpacing: -1,
+    color: '#18181b',
+  },
+  cardPriceCompact: {
+    fontSize: 24,
   },
   cardTotal: {
     paddingTop: 8,
     borderTopWidth: 1,
-  },
-  cardTotalLight: {
     borderTopColor: '#f4f4f5',
   },
-  cardTotalDark: {
-    borderTopColor: '#3f3f46',
+  cardTotalCompact: {
+    paddingTop: 4,
   },
   cardTotalValueGreen: {
     fontSize: 20,
@@ -690,20 +746,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#3b82f6',
   },
-  textDark: {
-    color: '#18181b',
-  },
-  textWhite: {
-    color: '#ffffff',
-  },
-  textGray: {
-    color: '#71717a',
-  },
-  textGrayLight: {
-    color: '#a1a1aa',
-  },
-  textGrayDark: {
-    color: '#52525b',
+  cardTotalValueCompact: {
+    fontSize: 16,
   },
   tooltipTitle: {
     fontWeight: 'bold',
