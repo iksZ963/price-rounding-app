@@ -272,9 +272,7 @@ export default function PriceRoundingCalculator() {
                       <Text style={styles.tooltipSimple}>Next reachable nickel</Text>
                     }
                   >
-                    <Pressable hitSlop={8}>
-                      <AlertCircleIcon size={14} color="#f59e0b" />
-                    </Pressable>
+                    <AlertCircleIcon size={14} color="#f59e0b" />
                   </TooltipWrapper>
                 )}
               </View>
@@ -312,9 +310,7 @@ export default function PriceRoundingCalculator() {
                       <Text style={styles.tooltipSimple}>Previous reachable nickel</Text>
                     }
                   >
-                    <Pressable hitSlop={8}>
-                      <AlertCircleIcon size={14} color="#f59e0b" />
-                    </Pressable>
+                    <AlertCircleIcon size={14} color="#f59e0b" />
                   </TooltipWrapper>
                 )}
               </View>
@@ -396,7 +392,7 @@ const styles = StyleSheet.create({
   taxInput: {
     height: 32,
     fontSize: 14,
-    paddingRight: 40,
+    paddingRight: 52,
   },
   inputSuffix: {
     position: 'absolute',
@@ -539,6 +535,8 @@ const styles = StyleSheet.create({
     width: 5,
     height: '100%',
     backgroundColor: '#10b981',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
   },
   cardAccentBlue: {
     position: 'absolute',
@@ -547,6 +545,8 @@ const styles = StyleSheet.create({
     width: 5,
     height: '100%',
     backgroundColor: '#3b82f6',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8,
   },
   cardHeader: {
     flexDirection: 'row',

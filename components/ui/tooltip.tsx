@@ -46,7 +46,9 @@ export const TooltipWrapper: React.FC<TooltipProps> = ({
 
   return (
     <>
-      <Pressable onPress={() => setVisible(true)}>{children}</Pressable>
+      <Pressable onPress={() => setVisible(true)} hitSlop={8}>
+        {children}
+      </Pressable>
       <Modal
         visible={visible}
         transparent
