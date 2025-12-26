@@ -31,5 +31,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderColor: '#e4e4e7',
     color: '#18181b',
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
 });
