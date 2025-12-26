@@ -1,16 +1,13 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
   Pressable,
 } from 'react-native';
 import { Input } from './ui/input';
 import { TooltipWrapper } from './ui/tooltip';
-import Svg, { Path, Circle } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
 function roundToNickel(amount: number): { rounded: number; direction: 'up' | 'down' | 'none' } {
   const cents = Math.round(amount * 100);
@@ -161,37 +158,9 @@ const CheckIcon = () => (
   </Svg>
 );
 
-const HelpCircleIcon = ({ size = 14, color = '#71717a' }: { size?: number; color?: string }) => (
-  <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <Circle cx="12" cy="12" r="10" stroke={color} strokeWidth={2} />
-    <Path
-      d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"
-      stroke={color}
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
 export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState('');
   const [taxRate, setTaxRate] = useState('');
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-
-  useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setIsKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setIsKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0;
@@ -216,19 +185,13 @@ export default function PriceRoundingCalculator() {
   }, [price, taxRate]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-    >
-      {!isKeyboardVisible && (
-        <View style={styles.header}>
-          <Text style={styles.headerText}>Penny Rounding Calculator</Text>
-        </View>
-      )}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerText}>Penny Rounding Calculator</Text>
+      </View>
 
-      <View style={[styles.content, isKeyboardVisible && styles.contentCompact]}>
-        <View style={[styles.section, isKeyboardVisible && styles.sectionCompact]}>
+      <View style={styles.content}>
+        <View style={styles.section}>
           <Text style={[styles.label, styles.labelSmall]}>TAX RATE</Text>
           <View style={styles.inputWrapper}>
             <Input
@@ -236,32 +199,32 @@ export default function PriceRoundingCalculator() {
               placeholder="0"
               value={taxRate}
               onChangeText={setTaxRate}
-              style={[styles.taxInput, isKeyboardVisible && styles.taxInputCompact]}
+              style={styles.taxInput}
             />
             <Text style={styles.inputSuffix}>%</Text>
           </View>
         </View>
 
-        <View style={[styles.preTaxSection, isKeyboardVisible && styles.preTaxSectionCompact]}>
+        <View style={styles.preTaxSection}>
           <Text style={[styles.label, styles.labelTiny]}>PRE-TAX AMOUNT</Text>
           <View style={styles.preTaxInputWrapper}>
-            <Text style={[styles.dollarSign, isKeyboardVisible && styles.dollarSignCompact]}>$</Text>
+            <Text style={styles.dollarSign}>$</Text>
             <Input
               keyboardType="decimal-pad"
               placeholder="0.00"
               value={price}
               onChangeText={setPrice}
-              style={[styles.preTaxInput, isKeyboardVisible && styles.preTaxInputCompact]}
+              style={styles.preTaxInput}
             />
           </View>
         </View>
 
-        <View style={[styles.breakdown, isKeyboardVisible && styles.breakdownCompact]}>
+        <View style={styles.breakdown}>
           <View style={styles.breakdownLeft}>
             <Text style={[styles.breakdownLabel, styles.labelTiny]}>
               TAX ({(Number.parseFloat(taxRate) || 0).toFixed(2)}%)
             </Text>
-            <Text style={[styles.breakdownValue, isKeyboardVisible && styles.breakdownValueCompact]}>
+            <Text style={styles.breakdownValue}>
               +${calculations.taxAmount.toFixed(2)}
             </Text>
           </View>
@@ -269,47 +232,21 @@ export default function PriceRoundingCalculator() {
           <View style={styles.divider} />
 
           <View style={styles.breakdownRight}>
-            <View style={styles.breakdownRightHeader}>
-              <Text style={[styles.breakdownLabel, styles.labelTiny]}>SUBTOTAL</Text>
-              <TooltipWrapper
-                content={
-                  <View>
-                    <Text style={styles.tooltipTitle}>Swedish Rounding Rules</Text>
-                    <View style={styles.tooltipContent}>
-                      <Text style={styles.tooltipText}>
-                        <Text style={styles.tooltipRed}>Round Down:</Text> ends in 1, 2, 6, 7
-                      </Text>
-                      <Text style={styles.tooltipText}>
-                        <Text style={styles.tooltipGreen}>Round Up:</Text> ends in 3, 4, 8, 9
-                      </Text>
-                      <Text style={[styles.tooltipText, styles.tooltipFooter]}>
-                        Ends in 0 or 5 stay exact
-                      </Text>
-                    </View>
-                  </View>
-                }
-              >
-                <Pressable hitSlop={8}>
-                  <HelpCircleIcon size={12} color="#71717a" />
-                </Pressable>
-              </TooltipWrapper>
-            </View>
-            <Text style={[styles.breakdownTotal, isKeyboardVisible && styles.breakdownTotalCompact]}>
+            <Text style={[styles.breakdownLabel, styles.labelTiny]}>SUBTOTAL</Text>
+            <Text style={styles.breakdownTotal}>
               ${calculations.total.toFixed(2)}
             </Text>
           </View>
         </View>
 
-        {!isKeyboardVisible && (
-          <View style={styles.dividerSection}>
-            <View style={styles.dividerLine} />
-            <Text style={[styles.dividerText, styles.labelTiny]}>ROUNDED PRICES</Text>
-            <View style={styles.dividerLine} />
-          </View>
-        )}
+        <View style={styles.dividerSection}>
+          <View style={styles.dividerLine} />
+          <Text style={[styles.dividerText, styles.labelTiny]}>ROUNDED PRICES</Text>
+          <View style={styles.dividerLine} />
+        </View>
 
         {calculations.subtotal > 0 && calculations.direction === 'none' && (
-          <View style={[styles.successCard, isKeyboardVisible && styles.successCardCompact]}>
+          <View style={styles.successCard}>
             <View style={styles.successIcon}>
               <CheckIcon />
             </View>
@@ -319,10 +256,10 @@ export default function PriceRoundingCalculator() {
         )}
 
         {!(calculations.subtotal > 0 && calculations.direction === 'none') && (
-          <View style={[styles.cardsContainer, isKeyboardVisible && styles.cardsContainerCompact]}>
+          <View style={styles.cardsContainer}>
             <View style={styles.card}>
               <View style={styles.cardAccentGreen} />
-              <View style={[styles.cardHeader, isKeyboardVisible && styles.cardHeaderCompact]}>
+              <View style={styles.cardHeader}>
                 <View style={styles.cardIconWrapper}>
                   <View style={[styles.iconBg, styles.iconBgGreen]}>
                     <StoreIcon size={14} color="#10b981" />
@@ -342,18 +279,18 @@ export default function PriceRoundingCalculator() {
                 )}
               </View>
               <View style={styles.cardBody}>
-                <View style={[styles.cardValueSection, isKeyboardVisible && styles.cardValueSectionCompact]}>
+                <View style={styles.cardValueSection}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>SET PRE-TAX TO</Text>
                   <View style={styles.cardPriceWrapper}>
-                    <Text style={[styles.cardDollarGreen, isKeyboardVisible && styles.cardDollarCompact]}>$</Text>
-                    <Text style={[styles.cardPrice, isKeyboardVisible && styles.cardPriceCompact]}>
+                    <Text style={styles.cardDollarGreen}>$</Text>
+                    <Text style={styles.cardPrice}>
                       {calculations.sellerSuggestion?.preTax.toFixed(2) ?? '0.00'}
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.cardTotal, isKeyboardVisible && styles.cardTotalCompact]}>
+                <View style={styles.cardTotal}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>AFTER-TAX TOTAL</Text>
-                  <Text style={[styles.cardTotalValueGreen, isKeyboardVisible && styles.cardTotalValueCompact]}>
+                  <Text style={styles.cardTotalValueGreen}>
                     ${calculations.sellerSuggestion?.total.toFixed(2) ?? '0.00'}
                   </Text>
                 </View>
@@ -362,7 +299,7 @@ export default function PriceRoundingCalculator() {
 
             <View style={styles.card}>
               <View style={styles.cardAccentBlue} />
-              <View style={[styles.cardHeader, isKeyboardVisible && styles.cardHeaderCompact]}>
+              <View style={styles.cardHeader}>
                 <View style={styles.cardIconWrapper}>
                   <View style={[styles.iconBg, styles.iconBgBlue]}>
                     <UsersIcon size={14} color="#3b82f6" />
@@ -382,18 +319,18 @@ export default function PriceRoundingCalculator() {
                 )}
               </View>
               <View style={styles.cardBody}>
-                <View style={[styles.cardValueSection, isKeyboardVisible && styles.cardValueSectionCompact]}>
+                <View style={styles.cardValueSection}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>SET PRE-TAX TO</Text>
                   <View style={styles.cardPriceWrapper}>
-                    <Text style={[styles.cardDollarBlue, isKeyboardVisible && styles.cardDollarCompact]}>$</Text>
-                    <Text style={[styles.cardPrice, isKeyboardVisible && styles.cardPriceCompact]}>
+                    <Text style={styles.cardDollarBlue}>$</Text>
+                    <Text style={styles.cardPrice}>
                       {calculations.customerSuggestion?.preTax.toFixed(2) ?? '0.00'}
                     </Text>
                   </View>
                 </View>
-                <View style={[styles.cardTotal, isKeyboardVisible && styles.cardTotalCompact]}>
+                <View style={styles.cardTotal}>
                   <Text style={[styles.cardSubLabel, styles.labelTiny]}>AFTER-TAX TOTAL</Text>
-                  <Text style={[styles.cardTotalValueBlue, isKeyboardVisible && styles.cardTotalValueCompact]}>
+                  <Text style={styles.cardTotalValueBlue}>
                     ${calculations.customerSuggestion?.total.toFixed(2) ?? '0.00'}
                   </Text>
                 </View>
@@ -402,7 +339,7 @@ export default function PriceRoundingCalculator() {
           </View>
         )}
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -415,9 +352,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 64,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 60,
+    paddingBottom: 12,
     borderBottomWidth: 1,
     backgroundColor: '#ffffff',
     borderBottomColor: '#f4f4f5',
@@ -425,7 +362,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
     letterSpacing: -0.5,
@@ -433,24 +370,17 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    paddingBottom: 12,
-  },
-  contentCompact: {
-    paddingTop: 4,
-    paddingBottom: 4,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 8,
   },
   section: {
-    marginBottom: 8,
-  },
-  sectionCompact: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   label: {
     fontWeight: 'bold',
     letterSpacing: 1,
-    marginBottom: 4,
+    marginBottom: 3,
   },
   labelTiny: {
     fontSize: 9,
@@ -464,79 +394,59 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   taxInput: {
-    height: 40,
-    fontSize: 16,
-    paddingRight: 48,
-  },
-  taxInputCompact: {
     height: 32,
     fontSize: 14,
+    paddingRight: 40,
   },
   inputSuffix: {
     position: 'absolute',
-    right: 16,
+    right: 12,
     top: '50%',
-    marginTop: -10,
-    fontSize: 16,
+    marginTop: -8,
+    fontSize: 14,
     fontWeight: '600',
     color: '#a1a1aa',
   },
   preTaxSection: {
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  preTaxSectionCompact: {
-    paddingVertical: 4,
-    marginBottom: 4,
+    paddingVertical: 6,
+    marginBottom: 6,
   },
   preTaxInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
+    gap: 4,
     width: '100%',
   },
   dollarSign: {
-    fontSize: 32,
+    fontSize: 24,
     fontWeight: '600',
     color: '#a1a1aa',
   },
-  dollarSignCompact: {
-    fontSize: 22,
-  },
   preTaxInput: {
     flex: 1,
-    fontSize: 40,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
     borderWidth: 0,
     backgroundColor: 'transparent',
     padding: 0,
-    height: 60,
+    height: 48,
     color: '#18181b',
-  },
-  preTaxInputCompact: {
-    fontSize: 28,
-    height: 40,
   },
   breakdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 8,
-    backgroundColor: '#fafafa',
-    borderColor: '#f4f4f5',
-  },
-  breakdownCompact: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    marginBottom: 4,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 6,
+    backgroundColor: '#fafafa',
+    borderColor: '#f4f4f5',
   },
   breakdownLeft: {
     flexDirection: 'column',
@@ -546,42 +456,31 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   breakdownValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#18181b',
   },
-  breakdownValueCompact: {
-    fontSize: 14,
-  },
   divider: {
     width: 1,
-    height: 40,
+    height: 32,
     backgroundColor: '#e4e4e7',
   },
   breakdownRight: {
     flexDirection: 'column',
     alignItems: 'flex-end',
   },
-  breakdownRightHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
   breakdownTotal: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: 'bold',
     letterSpacing: -0.5,
     color: '#18181b',
   },
-  breakdownTotalCompact: {
-    fontSize: 16,
-  },
   dividerSection: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 10,
     opacity: 0.6,
-    marginBottom: 8,
+    marginBottom: 6,
   },
   dividerLine: {
     flex: 1,
@@ -592,49 +491,41 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
   },
   successCard: {
-    padding: 12,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 10,
     borderWidth: 1,
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
     backgroundColor: '#ecfdf5',
     borderColor: '#d1fae5',
   },
-  successCardCompact: {
-    padding: 8,
-    marginBottom: 4,
-  },
   successIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#10b981',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   successTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#047857',
   },
   successSubtitle: {
-    fontSize: 14,
+    fontSize: 12,
     color: '#059669',
   },
   cardsContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8,
-  },
-  cardsContainerCompact: {
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 6,
   },
   card: {
     flex: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 10,
+    padding: 10,
     borderWidth: 2,
     position: 'relative',
     overflow: 'hidden',
@@ -645,39 +536,32 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 6,
+    width: 5,
     height: '100%',
     backgroundColor: '#10b981',
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
   },
   cardAccentBlue: {
     position: 'absolute',
     top: 0,
     left: 0,
-    width: 6,
+    width: 5,
     height: '100%',
     backgroundColor: '#3b82f6',
-    borderTopLeftRadius: 10,
-    borderBottomLeftRadius: 10,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  cardHeaderCompact: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardIconWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
   iconBg: {
-    padding: 6,
-    borderRadius: 12,
+    padding: 5,
+    borderRadius: 10,
   },
   iconBgGreen: {
     backgroundColor: '#d1fae5',
@@ -692,10 +576,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
   cardValueSection: {
-    marginBottom: 8,
-  },
-  cardValueSectionCompact: {
-    marginBottom: 4,
+    marginBottom: 6,
   },
   cardSubLabel: {
     letterSpacing: 1.5,
@@ -704,50 +585,38 @@ const styles = StyleSheet.create({
   cardPriceWrapper: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    gap: 4,
+    gap: 3,
   },
   cardDollarGreen: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#10b981',
   },
   cardDollarBlue: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: 'bold',
     color: '#3b82f6',
   },
-  cardDollarCompact: {
-    fontSize: 14,
-  },
   cardPrice: {
-    fontSize: 32,
+    fontSize: 26,
     fontWeight: '900',
     letterSpacing: -1,
     color: '#18181b',
   },
-  cardPriceCompact: {
-    fontSize: 24,
-  },
   cardTotal: {
-    paddingTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
     borderTopColor: '#f4f4f5',
   },
-  cardTotalCompact: {
-    paddingTop: 4,
-  },
   cardTotalValueGreen: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#10b981',
   },
   cardTotalValueBlue: {
-    fontSize: 20,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#3b82f6',
-  },
-  cardTotalValueCompact: {
-    fontSize: 16,
   },
   tooltipTitle: {
     fontWeight: 'bold',
