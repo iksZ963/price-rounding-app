@@ -56,3 +56,4 @@ ios/App/Pods/
 ios/.idea/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
+.env
