@@ -85,9 +85,64 @@ function calculateSuggestions(preTax: number, taxRate: number) {
   }
 }
 
+/**
+ * Sanitize price input to only allow valid decimal numbers
+ * - Removes all non-numeric characters except decimal point
+ * - Allows only one decimal point
+ * - Limits to 2 decimal places
+ * - Prevents negative numbers
+ */
+function sanitizePriceInput(value: string): string {
+  // Remove all characters except digits and decimal point
+  let cleaned = value.replace(/[^0-9.]/g, "")
+  
+  // Handle multiple decimal points - keep only the first one
+  const parts = cleaned.split(".")
+  if (parts.length > 2) {
+    cleaned = parts[0] + "." + parts.slice(1).join("")
+  }
+  
+  // Limit to 2 decimal places
+  if (parts.length === 2 && parts[1].length > 2) {
+    cleaned = parts[0] + "." + parts[1].substring(0, 2)
+  }
+  
+  return cleaned
+}
+
+/**
+ * Sanitize tax rate input
+ * - Same validation as price input
+ * - Additionally caps value at 100%
+ */
+function sanitizeTaxRateInput(value: string): string {
+  // First apply price sanitization
+  let cleaned = sanitizePriceInput(value)
+  
+  // Cap at 100%
+  const numValue = parseFloat(cleaned)
+  if (!isNaN(numValue) && numValue > 100) {
+    return "100"
+  }
+  
+  return cleaned
+}
+
 export default function PriceRoundingCalculator() {
   const [price, setPrice] = useState("")
   const [taxRate, setTaxRate] = useState("")
+
+  // Handle price input with validation
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizePriceInput(e.target.value)
+    setPrice(sanitized)
+  }
+
+  // Handle tax rate input with validation
+  const handleTaxRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const sanitized = sanitizeTaxRateInput(e.target.value)
+    setTaxRate(sanitized)
+  }
 
   const calculations = useMemo(() => {
     const priceNum = Number.parseFloat(price) || 0
@@ -134,7 +189,7 @@ export default function PriceRoundingCalculator() {
                 inputMode="decimal"
                 placeholder="0"
                 value={taxRate}
-                onChange={(e) => setTaxRate(e.target.value)}
+                onChange={handleTaxRateChange}
                 className="h-8 sm:h-10 text-sm sm:text-base pr-10 sm:pr-12 bg-white dark:bg-zinc-800 border-2 border-zinc-200 dark:border-zinc-700 rounded-lg font-semibold shadow-sm focus-visible:ring-0 focus-visible:border-zinc-400 dark:focus-visible:border-zinc-500"
               />
               <span className="absolute right-3 sm:right-4 top-1/2 -translate-y-1/2 text-sm sm:text-base font-semibold text-zinc-400 pointer-events-none">%</span>
@@ -154,7 +209,7 @@ export default function PriceRoundingCalculator() {
                   inputMode="decimal"
                   placeholder="0.00"
                   value={price}
-                  onChange={(e) => setPrice(e.target.value)}
+                  onChange={handlePriceChange}
                   className="text-2xl sm:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight border-0 bg-transparent p-0 h-auto text-center focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 placeholder:text-zinc-300 dark:placeholder:text-zinc-700"
                 />
               </div>
